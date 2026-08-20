@@ -1,5 +1,68 @@
 /* public/css/styles.css */
 
+
+/* ==========================================
+   REGLAS RESPONSIVAS PARA TABLETS Y TELÉFONOS
+   ========================================== */
+
+/* 1. Ajustes para Tablets y pantallas medianas (menos de 900px) */
+@media (max-width: 900px) {
+    /* POS: Apilar Catálogo y Carrito en una sola columna */
+    .pos-container, .grid-clientes {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+
+    /* Ajustar el grid de productos a 2 columnas */
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    }
+}
+
+/* 2. Ajustes para Teléfonos Móviles (menos de 600px) */
+@media (max-width: 600px) {
+    body {
+        padding: 10px !important;
+    }
+
+    /* Navbar en columna */
+    .pos-navbar {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+
+    .pos-navbar .nav-links {
+        width: 100%;
+        justify-content: space-between;
+        overflow-x: auto;
+        padding-bottom: 5px;
+    }
+
+    .pos-navbar .nav-link {
+        padding: 6px 10px !important;
+        font-size: 0.8rem !important;
+        white-space: nowrap;
+    }
+
+    /* Reducir catálogo a 1 o 2 columnas según pantalla */
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    }
+
+    /* Tabla del Carrito y Clientes adaptables */
+    .cart-table th, .cart-table td {
+        padding: 6px 4px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Botón de Procesar Venta grande para tocar en pantalla táctil */
+    .btn-checkout {
+        width: 100% !important;
+        padding: 14px !important;
+        font-size: 1rem !important;
+    }
+}
 :root {
     --bg-main: #f8fafc;
     --primary: #0f172a;

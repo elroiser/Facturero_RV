@@ -45,6 +45,7 @@ try {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../public/images/logo.png">
     <title>Factura <?= htmlspecialchars($factura['secuencial']); ?></title>
     <style>
         body { font-family: Arial, sans-serif; font-size: 12px; color: #333; margin: 20px; }
