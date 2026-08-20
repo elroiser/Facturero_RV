@@ -34,7 +34,7 @@ async function cargarProductosDesdeBD() {
 function renderProductos(lista) {
     const grid = document.getElementById("productsGrid");
     if (!grid) return;
-    
+
     grid.innerHTML = "";
     lista.forEach(p => {
         grid.innerHTML += `
@@ -50,7 +50,7 @@ function renderProductos(lista) {
 // Filtrar productos en la barra de búsqueda
 function filtrarProductos() {
     const query = document.getElementById("searchInput").value.toLowerCase();
-    const filtrados = productosDB.filter(p => 
+    const filtrados = productosDB.filter(p =>
         p.nombre.toLowerCase().includes(query) || p.codigo.includes(query)
     );
     renderProductos(filtrados);
@@ -59,6 +59,14 @@ function filtrarProductos() {
 // Agregar producto al carrito
 function agregarAlCarrito(productoId) {
     const producto = productosDB.find(p => p.id === productoId);
+    if (cantidad <= 0) {
+        alert("La cantidad debe ser mayor a 0.");
+        return;
+    }
+    if (cantidad > producto.stock) {
+        alert(`Stock insuficiente. Solo quedan ${producto.stock} unidades de ${producto.nombre}.`);
+        return;
+    }
     const itemExistente = carrito.find(item => item.producto_id === productoId);
 
     if (itemExistente) {
@@ -158,7 +166,7 @@ async function abrirModalCliente() {
 
         if (result.status === 'success') {
             select.innerHTML = '<option value="9999999999999">CONSUMIDOR FINAL (9999999999999)</option>';
-            
+
             result.data.forEach(c => {
                 if (c.identificacion !== '9999999999999') {
                     select.innerHTML += `
@@ -174,7 +182,7 @@ async function abrirModalCliente() {
     }
 
     modal.style.display = "flex";
-}                                                                                                               
+}
 
 function cerrarModalCliente() {
     document.getElementById("modalCliente").style.display = "none";
@@ -212,7 +220,7 @@ async function confirmarVentaConCliente() {
         if (response.ok && result.status === 'success') {
             cerrarModalCliente();
             alert(`✅ Factura ${result.secuencial} emitida con éxito.`);
-            
+
             // Abrir la factura en PDF en una nueva pestaña
             window.open(`imprimir_factura.php?id=${result.factura_id}`, '_blank');
 
