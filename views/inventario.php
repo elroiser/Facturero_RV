@@ -6,7 +6,7 @@ $pagina_actual = 'inventario';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chemlook POS - Inventario</title>
+    <title>RV - Limpieza | Inventario</title>
     <link rel="icon" type="image/png" href="../public/images/logo.png">
     <link rel="stylesheet" href="../public/css/styles.css">
     <style>
@@ -25,6 +25,11 @@ $pagina_actual = 'inventario';
         .badge-stock { padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
         .stock-ok { background: #dcfce7; color: #15803d; }
         .stock-low { background: #fee2e2; color: #b91c1c; }
+        .btn-add-stock {
+            background-color: #059669; color: white; border: none; padding: 4px 8px;
+            border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
+        }
+        .btn-add-stock:hover { background-color: #047857; }
     </style>
 </head>
 <body>
@@ -82,10 +87,11 @@ $pagina_actual = 'inventario';
                                 <th>Precio</th>
                                 <th>Stock</th>
                                 <th>Estado</th>
+                                <th style="text-align: center;">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tablaProductos">
-                            <tr><td colspan="6" style="text-align:center;">Cargando inventario...</td></tr>
+                            <tr><td colspan="7" style="text-align:center;">Cargando inventario...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -109,30 +115,72 @@ $pagina_actual = 'inventario';
                     tbody.innerHTML = "";
 
                     if (result.data.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No hay productos guardados.</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No hay productos guardados.</td></tr>`;
                         return;
                     }
 
                     result.data.forEach(p => {
-                        const precio = parseFloat(p.precio);
+                        const precio = parseFloat(p.precio_venta || p.precio);
                         const stock = parseInt(p.stock);
                         const badgeClass = stock <= 5 ? 'stock-low' : 'stock-ok';
                         const badgeText = stock <= 5 ? 'Stock Bajo' : 'Disponible';
 
                         tbody.innerHTML += `
                             <tr>
-                                <td><code>${p.codigo}</code></td>
+                                <td><code>${p.codigo || p.id}</code></td>
                                 <td><strong>${p.nombre}</strong></td>
                                 <td>${p.categoria || 'General'}</td>
                                 <td>$${precio.toFixed(2)}</td>
-                                <td>${stock} u.</td>
+                                <td><strong>${stock} u.</strong></td>
                                 <td><span class="badge-stock ${badgeClass}">${badgeText}</span></td>
+                                <td style="text-align: center;">
+                                    <button class="btn-add-stock" onclick="ingresarStock(${p.id}, '${p.nombre.replace(/'/g, "\\'")}', ${stock})">
+                                        ➕ Stock
+                                    </button>
+                                </td>
                             </tr>
                         `;
                     });
                 }
             } catch (error) {
                 console.error("Error al cargar inventario:", error);
+            }
+        }
+
+        // Ingresar/sumar nuevas unidades a un producto existente
+        async function ingresarStock(id, nombre, stockActual) {
+            const cantidadIngresar = prompt(`📦 Ingresar nuevo lote para:\n"${nombre}"\n\nStock actual: ${stockActual} u.\n\n¿Cuántas unidades nuevas deseas agregar al inventario?`);
+
+            if (cantidadIngresar === null) return; // Si presiona Cancelar
+
+            const unidades = parseInt(cantidadIngresar.trim());
+
+            if (isNaN(unidades) || unidades <= 0) {
+                alert("⚠️ Por favor, ingresa un número entero positivo.");
+                return;
+            }
+
+            try {
+                const response = await fetch('../controllers/StockController.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        producto_id: id,
+                        cantidad: unidades
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    alert(`✅ ${result.message}`);
+                    await cargarInventario(); // Recargar lista para ver el stock actualizado
+                } else {
+                    alert("❌ Error: " + (result.message || "No se pudo actualizar el stock."));
+                }
+            } catch (error) {
+                console.error("Error al enviar solicitud:", error);
+                alert("Ocurrió un problema al comunicar con el servidor.");
             }
         }
 
