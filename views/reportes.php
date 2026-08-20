@@ -7,6 +7,7 @@ $pagina_actual = 'reportes';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chemlook POS - Cierre de Caja</title>
+    <link rel="icon" type="image/png" href="../public/images/logo.png">
     <link rel="stylesheet" href="../public/css/styles.css">
     <style>
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }

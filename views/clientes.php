@@ -8,6 +8,7 @@ $pagina_actual = 'clientes';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RV - Limpieza - Clientes</title>
+    <link rel="icon" type="image/png" href="../public/images/logo.png">
     <link rel="stylesheet" href="../public/css/styles.css">
     <style>
         .grid-clientes {

@@ -26,19 +26,23 @@ try {
 </style>
 
 <nav class="pos-navbar">
-    <a href="pos.php" class="brand">🧪 RV - Limpieza</a>
+    
+    <a href="pos.php" class="brand"><img src="../public/images/logo.png" alt="Logo de la Empresa" width="40" style="margin-left: 12px; vertical-align: middle;"> RV - Limpieza</a>
+    
     
     <ul class="nav-links">
         <li><a href="pos.php" class="nav-link <?= ($pagina_actual === 'pos') ? 'active' : ''; ?>">🛒 Punto de Venta</a></li>
         <li><a href="clientes.php" class="nav-link <?= ($pagina_actual === 'clientes') ? 'active' : ''; ?>">👥 Clientes</a></li>
         <li><a href="inventario.php" class="nav-link <?= ($pagina_actual === 'inventario') ? 'active' : ''; ?>">📦 Inventario</a></li>
-        <li><a href="reportes.php" class="nav-link <?= ($pagina_actual === 'reportes') ? 'active' : ''; ?>">📊 Cierre de Caja</a></li>
+        <li><a href="reportes.php" class="nav-link <?= ($pagina_actual === 'reportes') ? 'active' : ''; ?>">📊 Cierre de Caja</a></li> 
     </ul>
     <div>
+        
         <?php if ($estadoCaja === 'ABIERTA'): ?>
             <span class="badge-caja-abierta">🟢 Caja #1 - ABIERTA</span>
         <?php else: ?>
             <span class="badge-caja-cerrada">🔴 Caja #1 - CERRADA</span>
-        <?php endif; ?>
+        <?php endif; ?>3
+        
     </div>
 </nav>

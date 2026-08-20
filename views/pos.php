@@ -7,6 +7,7 @@ $pagina_actual = 'pos';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RV - Limpieza | Punto de Venta</title>
+    <link rel="icon" type="image/png" href="../public/images/logo.png">
     <link rel="stylesheet" href="../public/css/styles.css">
     <style>
         /* Estilos para el Modal de Selección de Cliente */
