@@ -18,6 +18,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $db = Database::getConnection();
+
+        // 0. Validar que la caja esté ABIERTA
+        $stmtCajaCheck = $db->prepare("SELECT estado FROM cajas WHERE id = :caja_id LIMIT 1");
+        $stmtCajaCheck->execute([':caja_id' => $input['caja_id']]);
+        $cajaEstado = $stmtCajaCheck->fetch();
+
+        if (!$cajaEstado || $cajaEstado['estado'] !== 'ABIERTA') {
+            http_response_code(400);
+            echo json_encode([
+                "status" => "error",
+                "message" => "⚠️ La caja se encuentra CERRADA. Debes realizar la Apertura de Caja en la sección de Cierre de Caja antes de facturar."
+            ]);
+            exit;
+        }
+
+
         $db->beginTransaction();
 
         $caja_id = $input['caja_id'];
@@ -34,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->rollBack();
             http_response_code(400);
             echo json_encode([
-                "status" => "error", 
+                "status" => "error",
                 "message" => "El RUC/Cédula '{$identificacion}' no está registrado en el sistema. Regístralo en la pestaña Clientes."
             ]);
             exit;
@@ -142,7 +158,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "secuencial" => $secuencial_definitivo,
             "total" => $total_venta
         ]);
-
     } catch (Exception $e) {
         if (isset($db) && $db->inTransaction()) {
             $db->rollBack();

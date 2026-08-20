@@ -6,7 +6,7 @@ $pagina_actual = 'pos';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chemlook POS - Punto de Venta</title>
+    <title>RV - Limpieza | Punto de Venta</title>
     <link rel="stylesheet" href="../public/css/styles.css">
     <style>
         /* Estilos para el Modal de Selección de Cliente */

@@ -134,6 +134,21 @@ function actualizarCarritoUI() {
 async function abrirModalCliente() {
     if (carrito.length === 0) return;
 
+    // 1. Verificar primero si la caja está ABIERTA
+    try {
+        const resCaja = await fetch('../controllers/CajaController.php');
+        const dataCaja = await resCaja.json();
+
+        if (dataCaja.status === 'success' && dataCaja.data.estado === 'CERRADA') {
+            alert("⚠️ NO SE PUEDE FACTURAR: La caja se encuentra CERRADA.\n\nPor favor, ve al módulo 'Cierre de Caja' e ingresa el fondo inicial para abrir el turno.");
+            window.location.href = "reportes.php"; // Redirigir a la pantalla de caja
+            return;
+        }
+    } catch (e) {
+        console.error("Error al verificar estado de la caja:", e);
+    }
+
+    // 2. Si la caja está abierta, cargar lista de clientes y abrir el modal
     const modal = document.getElementById("modalCliente");
     const select = document.getElementById("selectCliente");
 
@@ -159,7 +174,7 @@ async function abrirModalCliente() {
     }
 
     modal.style.display = "flex";
-}
+}                                                                                                               
 
 function cerrarModalCliente() {
     document.getElementById("modalCliente").style.display = "none";
