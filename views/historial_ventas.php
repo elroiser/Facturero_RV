@@ -2,13 +2,10 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-// Redirigir al login si no hay sesión activa
-if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
+if (!isset($_SESSION['usuario_id']) || $_SESSION['rol_usuario'] !== 'ADMIN') {
+    header("Location: pos.php");
     exit;
 }
-
 $pagina_actual = 'historial_ventas';
 ?>
 <!DOCTYPE html>

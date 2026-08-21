@@ -13,6 +13,10 @@ if (!isset($pagina_actual)) {
     $pagina_actual = '';
 }
 
+// Obtener datos del usuario de la sesión
+$rolUsuario = isset($_SESSION['rol_usuario']) ? $_SESSION['rol_usuario'] : 'CAJERO';
+$nombreUsuario = isset($_SESSION['nombre_usuario']) ? $_SESSION['nombre_usuario'] : 'Usuario';
+
 // Obtener estado real de la caja
 require_once __DIR__ . '/../../config/Database.php';
 $estadoCaja = 'CERRADA';
@@ -102,6 +106,16 @@ try {
     .btn-logout:hover {
         background-color: #dc2626;
     }
+
+    .user-badge {
+        color: #cbd5e1;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-right: 12px;
+        background: #1e293b;
+        padding: 4px 10px;
+        border-radius: 6px;
+    }
 </style>
 
 <nav class="pos-navbar">
@@ -110,11 +124,17 @@ try {
     <ul class="nav-links">
         <li><a href="pos.php" class="nav-link <?= ($pagina_actual === 'pos') ? 'active' : ''; ?>">🛒 Punto de Venta</a></li>
         <li><a href="clientes.php" class="nav-link <?= ($pagina_actual === 'clientes') ? 'active' : ''; ?>">👥 Clientes</a></li>
-        <li><a href="inventario.php" class="nav-link <?= ($pagina_actual === 'inventario') ? 'active' : ''; ?>">📦 Inventario</a></li>
-        <li><a href="historial_ventas.php" class="nav-link <?= ($pagina_actual === 'historial_ventas') ? 'active' : ''; ?>">📊 Historial Ventas</a></li>
-        <li><a href="reportes.php" class="nav-link <?= ($pagina_actual === 'reportes') ? 'active' : ''; ?>">💵 Cierre de Caja</a></li>
+        
+        <?php if ($rolUsuario === 'ADMIN'): ?>
+            <li><a href="inventario.php" class="nav-link <?= ($pagina_actual === 'inventario') ? 'active' : ''; ?>">📦 Inventario</a></li>
+            <li><a href="historial_ventas.php" class="nav-link <?= ($pagina_actual === 'historial_ventas') ? 'active' : ''; ?>">📊 Historial Ventas</a></li>
+            <li><a href="reportes.php" class="nav-link <?= ($pagina_actual === 'reportes') ? 'active' : ''; ?>">💵 Cierre de Caja</a></li>
+        <?php endif; ?>
     </ul>
+
     <div style="display: flex; align-items: center;">
+        <span class="user-badge">👤 <?= htmlspecialchars($nombreUsuario); ?> (<?= htmlspecialchars($rolUsuario); ?>)</span>
+
         <?php if ($estadoCaja === 'ABIERTA'): ?>
             <span class="badge-caja-abierta">🟢 Caja #1 - ABIERTA</span>
         <?php else: ?>
