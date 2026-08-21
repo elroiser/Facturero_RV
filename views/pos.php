@@ -3,6 +3,7 @@ $pagina_actual = 'pos';
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,18 +13,64 @@ $pagina_actual = 'pos';
     <style>
         /* Estilos para el Modal de Selección de Cliente */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
+
         .modal-card {
-            background: #fff; border-radius: 8px; width: 450px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            background: #fff;
+            border-radius: 8px;
+            width: 450px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-        .btn-cancel { background: #64748b; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-confirm { background: var(--success); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            background: #64748b;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-confirm {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
     </style>
 </head>
+
 <body>
 
     <?php require_once __DIR__ . '/includes/navbar.php'; ?>
@@ -75,29 +122,41 @@ $pagina_actual = 'pos';
         </div>
     </main>
 
-    <!-- Modal de Selección de Cliente -->
+    <!-- Modal de Selección de Cliente y Tipo de Comprobante -->
     <div class="modal-overlay" id="modalCliente">
         <div class="modal-card">
             <div class="modal-header">
                 <h3>Seleccionar Cliente para Facturación</h3>
                 <button onclick="cerrarModalCliente()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
+
             <div style="margin-bottom: 12px;">
                 <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Selecciona un Cliente:</label>
                 <select id="selectCliente" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.95rem; outline:none;">
                     <option value="9999999999999">CONSUMIDOR FINAL (9999999999999)</option>
                 </select>
             </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Tipo de Comprobante:</label>
+                <select id="tipoComprobante" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.95rem; outline:none;">
+                    <option value="ticket">🎟️ Ticket Térmico (80mm)</option>
+                    <option value="factura">📄 Factura Grande (A4 / PDF)</option>
+                </select>
+            </div>
+
             <div style="font-size: 0.8rem; color: #64748b;">
                 * Si el cliente no aparece en la lista, regístralo previamente en la sección de <strong>Clientes</strong>.
             </div>
+
             <div class="modal-footer">
                 <button class="btn-cancel" onclick="cerrarModalCliente()">Cancelar</button>
-                <button class="btn-confirm" id="btnConfirmarVenta" onclick="confirmarVentaConCliente()">Emitir Factura</button>
+                <button class="btn-confirm" id="btnConfirmarVenta" onclick="confirmarVentaConCliente()">Emitir Comprobante</button>
             </div>
         </div>
     </div>
 
     <script src="../public/js/pos.js"></script>
 </body>
+
 </html>

@@ -225,9 +225,12 @@ function cerrarModalCliente() {
 }
 
 // 10. Confirmar Venta y Generar Factura
+// public/js/pos.js
+
 async function confirmarVentaConCliente() {
     const select = document.getElementById("selectCliente");
     const metodoPago = document.getElementById("metodoPago") ? document.getElementById("metodoPago").value : "EFECTIVO";
+    const tipoComprobante = document.getElementById("tipoComprobante") ? document.getElementById("tipoComprobante").value : "ticket";
     const btnConfirmar = document.getElementById("btnConfirmarVenta");
 
     if (!select) return;
@@ -258,16 +261,20 @@ async function confirmarVentaConCliente() {
         const result = await response.json();
 
         if (response.ok && result.status === 'success') {
-            alert(`✅ Factura ${result.secuencial} emitida con éxito.`);
+            alert(`✅ Venta registrada con éxito. Comprobante N° ${result.secuencial}`);
             
-            // Abrir la factura en PDF en una pestaña nueva
-            window.open(`imprimir_factura.php?id=${result.factura_id}`, '_blank');
+            // Abrir según la elección seleccionada
+            if (tipoComprobante === 'ticket') {
+                window.open(`imprimir_ticket.php?id=${result.factura_id}`, '_blank');
+            } else {
+                window.open(`imprimir_factura.php?id=${result.factura_id}`, '_blank');
+            }
 
             // Limpiar el carrito y cerrar modal
             carrito = [];
             actualizarCarritoUI();
             cerrarModalCliente();
-            await cargarProductosDesdeBD(); // Recargar stock actualizado
+            await cargarProductosDesdeBD();
         } else {
             alert("❌ Error al procesar venta: " + (result.message || "Error desconocido"));
         }
