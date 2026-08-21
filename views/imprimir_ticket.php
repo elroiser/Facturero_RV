@@ -1,37 +1,27 @@
 <?php
-// views/imprimir_ticket.php
-
 require_once __DIR__ . '/../config/Database.php';
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-
-if ($id <= 0) {
-    die("ID de factura/comprobante no válido.");
-}
+if ($id <= 0) die("ID de factura/comprobante no válido.");
 
 try {
     $db = Database::getConnection();
 
-    // Consultar Encabezado de la Factura y datos del Cliente
+    // Consultar Encabezado
     $stmtFactura = $db->prepare("
         SELECT f.*, c.razon_social, c.identificacion, c.direccion, c.telefono, c.email 
-        FROM facturas f 
-        INNER JOIN clientes c ON f.cliente_id = c.id 
-        WHERE f.id = :id 
-        LIMIT 1
+        FROM facturas f INNER JOIN clientes c ON f.cliente_id = c.id 
+        WHERE f.id = :id LIMIT 1
     ");
     $stmtFactura->execute([':id' => $id]);
     $factura = $stmtFactura->fetch();
 
-    if (!$factura) {
-        die("Comprobante no encontrado.");
-    }
+    if (!$factura) die("Comprobante no encontrado.");
 
-    // Consultar Detalle de la Factura
+    // Consultar Detalle
     $stmtDetalle = $db->prepare("
         SELECT df.*, p.nombre 
-        FROM detalle_facturas df 
-        INNER JOIN productos p ON df.producto_id = p.id 
+        FROM detalle_facturas df INNER JOIN productos p ON df.producto_id = p.id 
         WHERE df.factura_id = :id
     ");
     $stmtDetalle->execute([':id' => $id]);
@@ -47,68 +37,11 @@ try {
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="../public/images/logo.png">
     <title>Ticket #<?= htmlspecialchars($factura['secuencial']); ?></title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 11px;
-            color: #000;
-            background-color: #fff;
-            width: 80mm;
-            padding: 5px;
-            margin: 0 auto;
-        }
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .bold { font-weight: bold; }
-        
-        .logo-ticket {
-            max-width: 60mm;
-            max-height: 40px;
-            margin: 0 auto 5px auto;
-            display: block;
-            filter: grayscale(100%);
-        }
-
-        .header-info { margin-bottom: 8px; border-bottom: 1px dashed #000; padding-bottom: 6px; }
-        .header-info h2 { font-size: 14px; margin-bottom: 2px; }
-        .header-info p { font-size: 10px; line-height: 1.2; }
-
-        .client-info { margin-bottom: 8px; border-bottom: 1px dashed #000; padding-bottom: 6px; font-size: 10px; }
-        .client-info p { margin-bottom: 2px; }
-
-        .ticket-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 10px; }
-        .ticket-table th { border-bottom: 1px solid #000; padding: 3px 0; text-align: left; }
-        .ticket-table td { padding: 3px 0; vertical-align: top; }
-
-        .totals-section { border-top: 1px dashed #000; padding-top: 5px; margin-bottom: 10px; }
-        .totals-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px; }
-        .totals-row.grand-total { font-size: 13px; font-weight: bold; border-top: 1px solid #000; padding-top: 4px; margin-top: 4px; }
-
-        .footer-msg { font-size: 9px; text-align: center; margin-top: 10px; border-top: 1px dashed #000; padding-top: 6px; }
-
-        .btn-print {
-            display: block;
-            width: 100%;
-            padding: 8px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-
-        @media print {
-            .btn-print { display: none; }
-            body { width: 100%; padding: 0; }
-        }
-    </style>
+    <link rel="stylesheet" href="../public/css/styles.css">
 </head>
-<body onload="window.print()">
+<body class="ticket-body" onload="window.print()">
 
-    <button class="btn-print" onclick="window.print()">🖨️ Imprimir Ticket</button>
+    <button class="btn-ticket-print" onclick="window.print()">🖨️ Imprimir Ticket</button>
 
     <!-- Encabezado con Logo -->
     <div class="header-info text-center">

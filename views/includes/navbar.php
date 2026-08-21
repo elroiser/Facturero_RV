@@ -29,97 +29,12 @@ try {
 } catch (Exception $e) {
 }
 ?>
-<style>
-    .pos-navbar {
-        background-color: #0f172a;
-        padding: 12px 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 8px;
-        margin-bottom: 20px;
-    }
-
-    .pos-navbar .brand {
-        color: #38bdf8;
-        font-size: 1.25rem;
-        font-weight: 700;
-        text-decoration: none;
-    }
-
-    .pos-navbar .nav-links {
-        display: flex;
-        gap: 8px;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    .pos-navbar .nav-link {
-        color: #94a3b8;
-        text-decoration: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-size: 0.9rem;
-        font-weight: 600;
-    }
-
-    .pos-navbar .nav-link:hover {
-        color: #ffffff;
-        background-color: #1e293b;
-    }
-
-    .pos-navbar .nav-link.active {
-        color: #ffffff;
-        background-color: #2563eb;
-    }
-
-    .badge-caja-abierta {
-        background-color: #059669;
-        color: #ffffff;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.75rem;
-    }
-
-    .badge-caja-cerrada {
-        background-color: #dc2626;
-        color: #ffffff;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.75rem;
-    }
-
-    .btn-logout {
-        background-color: #ef4444;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-weight: 600;
-        text-decoration: none;
-        font-size: 0.8rem;
-        margin-left: 10px;
-    }
-
-    .btn-logout:hover {
-        background-color: #dc2626;
-    }
-
-    .user-badge {
-        color: #cbd5e1;
-        font-size: 0.8rem;
-        font-weight: bold;
-        margin-right: 12px;
-        background: #1e293b;
-        padding: 4px 10px;
-        border-radius: 6px;
-    }
-</style>
 
 <nav class="pos-navbar">
-    <a href="pos.php" class="brand"><img src="../public/images/logo.png" alt="Logo de la Empresa" width="40" style="margin-left: 12px; vertical-align: middle;"> RV - Limpieza</a>
+    <a href="pos.php" class="brand">
+        <img src="../public/images/logo.png" alt="Logo de la Empresa">
+        RV - Limpieza
+    </a>
 
     <ul class="nav-links">
         <li><a href="pos.php" class="nav-link <?= ($pagina_actual === 'pos') ? 'active' : ''; ?>">🛒 Punto de Venta</a></li>

@@ -1,7 +1,5 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) session_start();
 if (!isset($_SESSION['usuario_id']) || $_SESSION['rol_usuario'] !== 'ADMIN') {
     header("Location: pos.php");
     exit;
@@ -10,109 +8,15 @@ $pagina_actual = 'inventario';
 ?>
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RV - Limpieza | Inventario</title>
     <link rel="icon" type="image/png" href="../public/images/logo.png">
     <link rel="stylesheet" href="../public/css/styles.css">
-    <style>
-        .grid-inventario { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
-        .form-group input, .form-group select {
-            width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; outline: none;
-        }
-        .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
-        .btn-submit {
-            width: 100%; padding: 10px; background: var(--accent); color: white; border: none;
-            border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 8px;
-        }
-        .btn-submit:hover { background: var(--accent-hover); }
-        .badge-stock { padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
-        .stock-ok { background: #dcfce7; color: #15803d; }
-        .stock-low { background: #fee2e2; color: #b91c1c; }
-        .btn-add-stock {
-            background-color: #059669; color: white; border: none; padding: 4px 8px;
-            border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; margin-right: 4px;
-        }
-        .btn-add-stock:hover { background-color: #047857; }
-        .btn-edit-price {
-            background-color: #2563eb; color: white; border: none; padding: 4px 8px;
-            border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
-        }
-        .btn-edit-price:hover { background-color: #1d4ed8; }
-
-        /* Estilos del Modal Flotante */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .modal-card {
-            background: white;
-            width: 90%;
-            max-width: 420px;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 12px;
-            margin-bottom: 15px;
-        }
-
-        .modal-header h3 { margin: 0; color: #0f172a; }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 12px;
-            margin-top: 15px;
-        }
-
-        .btn-cancel {
-            background: #cbd5e1;
-            color: #1e293b;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-confirm {
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-    </style>
 </head>
-
 <body>
 
-    <!-- Incluir Navbar Modular -->
     <?php require_once __DIR__ . '/includes/navbar.php'; ?>
 
     <div class="container">
@@ -181,7 +85,7 @@ $pagina_actual = 'inventario';
         </div>
     </div>
 
-    <!-- Modal Emergente Flotante -->
+    <!-- Modal Editar Precio -->
     <div class="modal-overlay" id="modalEditarPrecio" style="display:none;">
         <div class="modal-card">
             <div class="modal-header">
@@ -211,22 +115,17 @@ $pagina_actual = 'inventario';
     <script>
         let listaProductosInv = [];
 
-        document.addEventListener("DOMContentLoaded", () => {
-            cargarInventario();
-        });
+        document.addEventListener("DOMContentLoaded", () => cargarInventario());
 
         async function cargarInventario() {
             try {
-                const response = await fetch('../controllers/ProductoController.php');
-                const result = await response.json();
-
-                if (result.status === 'success') {
-                    listaProductosInv = result.data;
+                const res = await fetch('../controllers/ProductoController.php');
+                const json = await res.json();
+                if (json.status === 'success') {
+                    listaProductosInv = json.data;
                     renderTablaInventario(listaProductosInv);
                 }
-            } catch (error) {
-                console.error("Error al cargar inventario:", error);
-            }
+            } catch (e) { console.error("Error al cargar inventario:", e); }
         }
 
         function renderTablaInventario(productos) {
@@ -254,26 +153,20 @@ $pagina_actual = 'inventario';
                         <td><strong>${stock} u.</strong></td>
                         <td><span class="badge-stock ${badgeClass}">${badgeText}</span></td>
                         <td style="text-align: center; white-space: nowrap;">
-                            <button class="btn-add-stock" onclick="ingresarStock(${p.id}, '${p.nombre.replace(/'/g, "\\'")}', ${stock})">
-                                ➕ Stock
-                            </button>
-                            <button class="btn-edit-price" onclick="abrirModalPrecio(${p.id}, '${p.nombre.replace(/'/g, "\\'")}', ${precio})">
-                                ✏️ Precio
-                            </button>
+                            <button class="btn-add-stock" onclick="ingresarStock(${p.id}, '${p.nombre.replace(/'/g, "\\'")}', ${stock})">➕ Stock</button>
+                            <button class="btn-edit-price" onclick="abrirModalPrecio(${p.id}, '${p.nombre.replace(/'/g, "\\'")}', ${precio})">✏️ Precio</button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
         }
 
         function filtrarTablaInventario() {
             const query = document.getElementById("inputBuscarInv").value.toLowerCase().trim();
-            const filtrados = listaProductosInv.filter(p => 
+            renderTablaInventario(listaProductosInv.filter(p => 
                 p.nombre.toLowerCase().includes(query) || 
                 (p.codigo_barras && p.codigo_barras.toLowerCase().includes(query)) ||
                 (p.codigo && p.codigo.toLowerCase().includes(query))
-            );
-            renderTablaInventario(filtrados);
+            ));
         }
 
         function abrirModalPrecio(id, nombre, precioActual) {
@@ -292,113 +185,73 @@ $pagina_actual = 'inventario';
             const nuevoPrecio = parseFloat(document.getElementById("editNuevoPrecio").value);
             const btn = document.getElementById("btnGuardarPrecio");
 
-            if (isNaN(nuevoPrecio) || nuevoPrecio <= 0) {
-                alert("Por favor, ingresa un precio válido mayor a 0.");
-                return;
-            }
+            if (isNaN(nuevoPrecio) || nuevoPrecio <= 0) return alert("Ingresa un precio válido mayor a 0.");
 
             btn.disabled = true;
             btn.innerText = "Guardando...";
 
             try {
-                const response = await fetch('../controllers/ProductoController.php?action=actualizar_precio', {
+                const res = await fetch('../controllers/ProductoController.php?action=actualizar_precio', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: id, precio: nuevoPrecio })
                 });
-
-                const json = await response.json();
-
-                if (response.ok && json.status === 'success') {
+                const json = await res.json();
+                if (res.ok && json.status === 'success') {
                     alert("✅ " + json.message);
                     cerrarModalPrecio();
                     await cargarInventario();
-                } else {
-                    alert("❌ Error: " + json.message);
-                }
-            } catch (err) {
-                console.error("Error al actualizar precio:", err);
-                alert("Ocurrió un problema de conexión con el servidor.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "💾 Guardar Cambio";
-            }
+                } else alert("❌ Error: " + json.message);
+            } catch (err) { alert("Ocurrió un problema de conexión."); } 
+            finally { btn.disabled = false; btn.innerText = "💾 Guardar Cambio"; }
         }
 
         async function ingresarStock(id, nombre, stockActual) {
-            const cantidadIngresar = prompt(`📦 Ingresar nuevo lote para:\n"${nombre}"\n\nStock actual: ${stockActual} u.\n\n¿Cuántas unidades nuevas deseas agregar al inventario?`);
-
-            if (cantidadIngresar === null) return;
-
-            const unidades = parseInt(cantidadIngresar.trim());
-
-            if (isNaN(unidades) || unidades <= 0) {
-                alert("⚠️ Por favor, ingresa un número entero positivo.");
-                return;
-            }
+            const cantidad = prompt(`📦 Ingresar nuevo lote para:\n"${nombre}"\n\nStock actual: ${stockActual} u.\n\n¿Cuántas unidades deseas agregar?`);
+            if (cantidad === null) return;
+            const unidades = parseInt(cantidad.trim());
+            if (isNaN(unidades) || unidades <= 0) return alert("⚠️ Ingresa un número entero positivo.");
 
             try {
-                const response = await fetch('../controllers/StockController.php', {
+                const res = await fetch('../controllers/StockController.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        producto_id: id,
-                        cantidad: unidades
-                    })
+                    body: JSON.stringify({ producto_id: id, cantidad: unidades })
                 });
-
-                const result = await response.json();
-
-                if (response.ok && result.status === 'success') {
-                    alert(`✅ ${result.message}`);
+                const json = await res.json();
+                if (res.ok && json.status === 'success') {
+                    alert(`✅ ${json.message}`);
                     await cargarInventario();
-                } else {
-                    alert("❌ Error: " + (result.message || "No se pudo actualizar el stock."));
-                }
-            } catch (error) {
-                console.error("Error al enviar solicitud:", error);
-                alert("Ocurrió un problema al comunicar con el servidor.");
-            }
+                } else alert("❌ Error: " + (json.message || "No se pudo actualizar el stock."));
+            } catch (e) { alert("Error al comunicar con el servidor."); }
         }
 
         async function guardarProducto(e) {
             e.preventDefault();
             const btn = document.getElementById("btnGuardar");
-
-            const payload = {
-                codigo_barras: document.getElementById("codigo").value.trim(),
-                nombre: document.getElementById("nombre").value.trim(),
-                categoria_id: parseInt(document.getElementById("categoria_id").value),
-                precio: parseFloat(document.getElementById("precio").value),
-                stock: parseInt(document.getElementById("stock").value)
-            };
-
             btn.disabled = true;
             btn.innerText = "Guardando...";
 
             try {
-                const response = await fetch('../controllers/ProductoController.php', {
+                const res = await fetch('../controllers/ProductoController.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        codigo_barras: document.getElementById("codigo").value.trim(),
+                        nombre: document.getElementById("nombre").value.trim(),
+                        categoria_id: parseInt(document.getElementById("categoria_id").value),
+                        precio: parseFloat(document.getElementById("precio").value),
+                        stock: parseInt(document.getElementById("stock").value)
+                    })
                 });
-
-                const result = await response.json();
-
-                if (response.ok && result.status === 'success') {
-                    alert("✅ Producto registrado correctamente en la base de datos.");
+                const json = await res.json();
+                if (res.ok && json.status === 'success') {
+                    alert("✅ Producto registrado correctamente.");
                     document.getElementById("formProducto").reset();
                     await cargarInventario();
-                } else {
-                    alert("❌ Error: " + result.message);
-                }
-            } catch (error) {
-                console.error("Error al guardar producto:", error);
-                alert("Ocurrió un problema al comunicar con el servidor.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Guardar Producto";
-            }
+                } else alert("❌ Error: " + json.message);
+            } catch (e) { alert("Error al comunicar con el servidor."); } 
+            finally { btn.disabled = false; btn.innerText = "Guardar Producto"; }
         }
     </script>
 </body>
