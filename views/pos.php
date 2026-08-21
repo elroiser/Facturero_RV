@@ -67,6 +67,35 @@ $pagina_actual = 'pos';
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
+
+        }
+
+        .filtros-presentacion {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-filtro-cat {
+            background: #e2e8f0;
+            color: #334155;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-filtro-cat:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-filtro-cat.active {
+            background: #2563eb;
+            color: white;
         }
     </style>
 </head>
@@ -74,8 +103,15 @@ $pagina_actual = 'pos';
 <body>
 
     <?php require_once __DIR__ . '/includes/navbar.php'; ?>
+    <div class="filtros-presentacion">
+        <button class="btn-filtro-cat active" onclick="filtrarPorPresentacion('TODOS', this)">🧪 Todos</button>
+        <button class="btn-filtro-cat" onclick="filtrarPorPresentacion('Galón 4L', this)">🧴 Galones (4L)</button>
+        <button class="btn-filtro-cat" onclick="filtrarPorPresentacion('1 Litro', this)">🍼 Litros (1L)</button>
+        <button class="btn-filtro-cat" onclick="filtrarPorPresentacion('Caneca 20L', this)">🛢️ Canecas (20L)</button>
+    </div>
 
     <main class="pos-container">
+
         <!-- Izquierda: Catálogo -->
         <div class="card">
             <div class="search-box">
@@ -83,6 +119,8 @@ $pagina_actual = 'pos';
             </div>
             <div class="products-grid" id="productsGrid"></div>
         </div>
+
+
 
         <!-- Derecha: Carrito -->
         <div class="card">
@@ -121,6 +159,7 @@ $pagina_actual = 'pos';
             </button>
         </div>
     </main>
+
 
     <!-- Modal de Selección de Cliente y Tipo de Comprobante -->
     <div class="modal-overlay" id="modalCliente">

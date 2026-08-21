@@ -9,13 +9,12 @@ $action = isset($_GET['action']) ? $_GET['action'] : 'listar';
 try {
     $db = Database::getConnection();
 
-    // 1. LISTAR TODAS LAS FACTURAS/VENTAS
+    // 1. LISTAR FACTURAS CON FILTROS
     if ($action === 'listar') {
         $fecha_inicio = isset($_GET['fecha_inicio']) ? trim($_GET['fecha_inicio']) : '';
         $fecha_fin = isset($_GET['fecha_fin']) ? trim($_GET['fecha_fin']) : '';
         $busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
 
-        // Consulta directa a facturas uniendo con clientes por id
         $sql = "
             SELECT 
                 f.id,
@@ -33,15 +32,26 @@ try {
 
         $params = [];
 
+        // Filtro por rango de fechas
         if (!empty($fecha_inicio) && !empty($fecha_fin)) {
             $sql .= " AND DATE(f.fecha_emision) BETWEEN :fecha_inicio AND :fecha_fin";
             $params[':fecha_inicio'] = $fecha_inicio;
             $params[':fecha_fin'] = $fecha_fin;
         }
 
+        // Filtro por término de búsqueda (Parámetros únicos)
         if (!empty($busqueda)) {
-            $sql .= " AND (c.razon_social LIKE :busqueda OR c.identificacion LIKE :busqueda OR f.secuencial LIKE :busqueda OR f.id LIKE :busqueda)";
-            $params[':busqueda'] = '%' . $busqueda . '%';
+            $sql .= " AND (
+                c.razon_social LIKE :b1 OR 
+                c.identificacion LIKE :b2 OR 
+                f.secuencial LIKE :b3 OR 
+                f.id LIKE :b4
+            )";
+            $valorBusqueda = '%' . $busqueda . '%';
+            $params[':b1'] = $valorBusqueda;
+            $params[':b2'] = $valorBusqueda;
+            $params[':b3'] = $valorBusqueda;
+            $params[':b4'] = $valorBusqueda;
         }
 
         $sql .= " ORDER BY f.id DESC LIMIT 200";
@@ -56,7 +66,6 @@ try {
         foreach ($facturas as $f) {
             $totalGeneral += floatval($f['total']);
             
-            // Si el cliente es nulo o no se encontró, asignar Consumidor Final
             $clienteNombre = !empty($f['razon_social']) ? $f['razon_social'] : 'CONSUMIDOR FINAL';
             $clienteIdent = !empty($f['identificacion']) ? $f['identificacion'] : '9999999999999';
             $numSecuencial = !empty($f['secuencial']) ? $f['secuencial'] : 'FAC-' . str_pad($f['id'], 6, '0', STR_PAD_LEFT);
@@ -81,7 +90,7 @@ try {
         exit;
     }
 
-    // 2. DETALLE DE FACTURA
+    // 2. DETALLE DE LA FACTURA
     if ($action === 'detalle') {
         $factura_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 

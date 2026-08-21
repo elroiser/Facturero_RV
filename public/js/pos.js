@@ -2,6 +2,7 @@
 
 let productosBD = [];
 let carrito = [];
+let filtroPresentacionActual = 'TODOS';
 
 // 1. Cargar productos desde el backend
 async function cargarProductosDesdeBD() {
@@ -15,10 +16,10 @@ async function cargarProductosDesdeBD() {
                 nombre: p.nombre,
                 precio: parseFloat(p.precio_venta || p.precio),
                 stock: parseInt(p.stock),
-                codigo: p.codigo || ''
+                codigo: p.codigo || p.codigo_barras || ''
             }));
 
-            renderProductos(productosBD);
+            renderProductos();
         } else {
             console.error("Error al obtener productos:", result.message);
         }
@@ -27,19 +28,40 @@ async function cargarProductosDesdeBD() {
     }
 }
 
-// 2. Renderizar las tarjetas de productos
-function renderProductos(lista) {
+// 2. Renderizar productos combinando Pestaña Activa + Buscador
+function renderProductos() {
     const grid = document.getElementById("productsGrid");
+    const inputBusqueda = document.getElementById("searchInput");
+    const textoQuery = inputBusqueda ? inputBusqueda.value.toLowerCase().trim() : '';
+
     if (!grid) return;
 
     grid.innerHTML = "";
 
-    if (lista.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 20px;">No hay productos disponibles.</div>`;
+    // Filtrar productos por presentación y por texto de búsqueda
+    const productosFiltrados = productosBD.filter(p => {
+        const nombreLower = p.nombre.toLowerCase();
+        const codigoLower = p.codigo.toLowerCase();
+        const coincideTexto = nombreLower.includes(textoQuery) || codigoLower.includes(textoQuery);
+
+        let coincidePresentacion = true;
+        if (filtroPresentacionActual === 'Galón 4L') {
+            coincidePresentacion = nombreLower.includes('galón') || nombreLower.includes('4l');
+        } else if (filtroPresentacionActual === '1 Litro') {
+            coincidePresentacion = nombreLower.includes('1 litro') || nombreLower.includes('1l');
+        } else if (filtroPresentacionActual === 'Caneca 20L') {
+            coincidePresentacion = nombreLower.includes('caneca') || nombreLower.includes('20l');
+        }
+
+        return coincideTexto && coincidePresentacion;
+    });
+
+    if (productosFiltrados.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 30px;">No hay productos disponibles en esta sección.</div>`;
         return;
     }
 
-    lista.forEach(p => {
+    productosFiltrados.forEach(p => {
         grid.innerHTML += `
             <div class="product-card" onclick="agregarAlCarrito(${p.id})">
                 <div class="product-title">${p.nombre}</div>
@@ -50,22 +72,25 @@ function renderProductos(lista) {
     });
 }
 
-// 3. Filtrar en la barra de búsqueda
-function filtrarProductos() {
-    const input = document.getElementById("searchInput");
-    if (!input) return;
+// 3. Filtrar al presionar las pestañas de presentación
+function filtrarPorPresentacion(presentacion, elementoBtn) {
+    filtroPresentacionActual = presentacion;
 
-    const query = input.value.toLowerCase().trim();
-    const filtrados = productosBD.filter(p => 
-        p.nombre.toLowerCase().includes(query) || p.codigo.toLowerCase().includes(query)
-    );
+    // Actualizar botones activos
+    const botones = document.querySelectorAll('.btn-filtro-cat');
+    botones.forEach(btn => btn.classList.remove('active'));
+    if (elementoBtn) elementoBtn.classList.add('active');
 
-    renderProductos(filtrados);
+    renderProductos();
 }
 
-// 4. Agregar producto al Carrito (CORREGIDO)
+// 4. Filtrar en la barra de búsqueda
+function filtrarProductos() {
+    renderProductos();
+}
+
+// 5. Agregar producto al Carrito
 function agregarAlCarrito(productoId) {
-    // Buscar el producto en la lista global
     const producto = productosBD.find(p => p.id === productoId);
 
     if (!producto) {
@@ -78,7 +103,6 @@ function agregarAlCarrito(productoId) {
         return;
     }
 
-    // Verificar si ya está en el carrito
     const itemEnCarrito = carrito.find(item => item.producto_id === productoId);
 
     if (itemEnCarrito) {
@@ -99,7 +123,7 @@ function agregarAlCarrito(productoId) {
     actualizarCarritoUI();
 }
 
-// 5. Actualizar la interfaz del carrito y total
+// 6. Actualizar la interfaz del carrito y total
 function actualizarCarritoUI() {
     const cartBody = document.getElementById("cartBody");
     const totalDisplay = document.getElementById("totalDisplay");
@@ -140,7 +164,7 @@ function actualizarCarritoUI() {
     btnProcesar.disabled = false;
 }
 
-// 6. Cambiar cantidad desde los botones +/-
+// 7. Cambiar cantidad desde los botones +/-
 function cambiarCantidad(index, cambio) {
     if (!carrito[index]) return;
 
@@ -163,20 +187,19 @@ function cambiarCantidad(index, cambio) {
     actualizarCarritoUI();
 }
 
-// 7. Eliminar ítem del carrito
+// 8. Eliminar ítem del carrito
 function eliminarDelCarrito(index) {
     carrito.splice(index, 1);
     actualizarCarritoUI();
 }
 
-// 8. Abrir modal para elegir cliente (Validando estado de caja primero)
+// 9. Abrir modal para elegir cliente
 async function abrirModalCliente() {
     if (carrito.length === 0) {
         alert("El carrito está vacío. Agrega al menos un producto.");
         return;
     }
 
-    // Validar si la caja está ABIERTA
     try {
         const resCaja = await fetch('../controllers/CajaController.php');
         const dataCaja = await resCaja.json();
@@ -190,7 +213,6 @@ async function abrirModalCliente() {
         console.error("Error al verificar estado de la caja:", e);
     }
 
-    // Cargar la lista de clientes en el selector
     const modal = document.getElementById("modalCliente");
     const select = document.getElementById("selectCliente");
 
@@ -200,7 +222,7 @@ async function abrirModalCliente() {
 
         if (result.status === 'success') {
             select.innerHTML = '<option value="9999999999999">CONSUMIDOR FINAL (9999999999999)</option>';
-            
+
             result.data.forEach(c => {
                 if (c.identificacion !== '9999999999999') {
                     select.innerHTML += `
@@ -218,15 +240,13 @@ async function abrirModalCliente() {
     if (modal) modal.style.display = "flex";
 }
 
-// 9. Cerrar el modal de selección de cliente
+// 10. Cerrar el modal de selección de cliente
 function cerrarModalCliente() {
     const modal = document.getElementById("modalCliente");
     if (modal) modal.style.display = "none";
 }
 
-// 10. Confirmar Venta y Generar Factura
-// public/js/pos.js
-
+// 11. Confirmar Venta y Generar Factura
 async function confirmarVentaConCliente() {
     const select = document.getElementById("selectCliente");
     const metodoPago = document.getElementById("metodoPago") ? document.getElementById("metodoPago").value : "EFECTIVO";
@@ -262,15 +282,13 @@ async function confirmarVentaConCliente() {
 
         if (response.ok && result.status === 'success') {
             alert(`✅ Venta registrada con éxito. Comprobante N° ${result.secuencial}`);
-            
-            // Abrir según la elección seleccionada
+
             if (tipoComprobante === 'ticket') {
                 window.open(`imprimir_ticket.php?id=${result.factura_id}`, '_blank');
             } else {
                 window.open(`imprimir_factura.php?id=${result.factura_id}`, '_blank');
             }
 
-            // Limpiar el carrito y cerrar modal
             carrito = [];
             actualizarCarritoUI();
             cerrarModalCliente();
@@ -286,6 +304,7 @@ async function confirmarVentaConCliente() {
         btnConfirmar.innerText = "Emitir Factura";
     }
 }
+
 // Inicializar al cargar el DOM
 document.addEventListener("DOMContentLoaded", () => {
     cargarProductosDesdeBD();
