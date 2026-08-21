@@ -8,13 +8,20 @@ $pagina_actual = 'reportes';
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RV - Limpieza | Cierre de Caja</title>
+    <title>RV - Limpieza | Cierre de Caja y Reportes</title>
     <link rel="icon" type="image/png" href="../public/images/logo.png">
     <link rel="stylesheet" href="../public/css/styles.css">
+
+    <!-- Chart.js para Gráficos Estadísticos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS para Exportación a Excel (.xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
+
 <body>
 
     <?php require_once __DIR__ . '/includes/navbar.php'; ?>
@@ -54,7 +61,9 @@ $pagina_actual = 'reportes';
                         </tr>
                     </thead>
                     <tbody id="tablaVentas">
-                        <tr><td colspan="4" style="text-align:center;">Cargando resumen...</td></tr>
+                        <tr>
+                            <td colspan="4" style="text-align:center;">Cargando resumen...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -67,12 +76,34 @@ $pagina_actual = 'reportes';
             <p style="margin: 15px 0; color: #64748b;">Para volver a realizar ventas en el sistema POS, debes iniciar un nuevo turno de caja.</p>
             <button class="btn-open-box" onclick="reabrirCaja()">🔓 Abrir Nueva Caja / Turno</button>
         </div>
+
+        <!-- Barra de Exportación -->
+        <div class="export-bar" style="margin-top: 25px;">
+            <button class="btn-excel" onclick="exportarInventarioExcel()">📊 Exportar Inventario (Excel)</button>
+            <button class="btn-excel" style="background:#0284c7;" onclick="exportarVentasExcel()">📄 Exportar Ventas del Día (Excel)</button>
+        </div>
+
+        <!-- Grid de Gráficos -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>🏆 Top 5 Productos Más Vendidos del Mes</h3>
+                <canvas id="chartProductos"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>⏰ Horas Pico de Mayor Flujo de Ventas</h3>
+                <canvas id="chartHoras"></canvas>
+            </div>
+        </div>
     </div>
 
     <script>
         let totalArqueoMonto = 0;
 
-        document.addEventListener("DOMContentLoaded", () => cargarResumenCaja());
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarResumenCaja();
+            cargarGraficoProductos();
+            cargarGraficoHoras();
+        });
 
         async function cargarResumenCaja() {
             try {
@@ -115,7 +146,9 @@ $pagina_actual = 'reportes';
                             </tr>`;
                     });
                 }
-            } catch (e) { console.error("Error al cargar datos de caja:", e); }
+            } catch (e) {
+                console.error("Error al cargar datos de caja:", e);
+            }
         }
 
         async function cerrarCaja() {
@@ -134,7 +167,9 @@ $pagina_actual = 'reportes';
                     window.print();
                     await cargarResumenCaja();
                 } else alert("❌ Error: " + json.message);
-            } catch (e) { alert("Error de conexión al cerrar caja."); }
+            } catch (e) {
+                alert("Error de conexión al cerrar caja.");
+            }
         }
 
         async function reabrirCaja() {
@@ -153,8 +188,86 @@ $pagina_actual = 'reportes';
                     alert("✅ " + json.message);
                     await cargarResumenCaja();
                 }
-            } catch (e) { alert("Error al reabrir caja."); }
+            } catch (e) {
+                alert("Error al reabrir caja.");
+            }
+        }
+
+        async function cargarGraficoProductos() {
+            try {
+                const res = await fetch('../controllers/ReportesAvanzadosController.php?action=top_productos');
+                const json = await res.json();
+                if (json.status === 'success') {
+                    const labels = json.data.map(item => item.nombre);
+                    const valores = json.data.map(item => item.total_vendido);
+
+                    new Chart(document.getElementById('chartProductos'), {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Unidades Vendidas',
+                                data: valores,
+                                backgroundColor: '#3b82f6'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function cargarGraficoHoras() {
+            try {
+                const res = await fetch('../controllers/ReportesAvanzadosController.php?action=horas_pico');
+                const json = await res.json();
+                if (json.status === 'success') {
+                    const labels = json.data.map(item => `${item.hora}:00 hs`);
+                    const valores = json.data.map(item => item.cantidad_ventas);
+
+                    new Chart(document.getElementById('chartHoras'), {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Transacciones',
+                                data: valores,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: { responsive: true }
+                    });
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function exportarInventarioExcel() {
+            try {
+                const res = await fetch('../controllers/ReportesAvanzadosController.php?action=exportar_inventario');
+                const json = await res.json();
+                if (json.status === 'success') {
+                    const worksheet = XLSX.utils.json_to_sheet(json.data);
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario");
+                    XLSX.writeFile(workbook, "Reporte_Inventario_RV_Limpieza.xlsx");
+                }
+            } catch (e) {
+                alert("Error al generar reporte de inventario.");
+            }
+        }
+
+        function exportarVentasExcel() {
+            const tabla = document.getElementById("tablaVentas");
+            const workbook = XLSX.utils.table_to_book(tabla);
+            XLSX.writeFile(workbook, "Cierre_Caja_Transacciones.xlsx");
         }
     </script>
 </body>
+
 </html>
