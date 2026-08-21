@@ -1,4 +1,14 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Redirigir al Login si no hay sesión activa
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
 if (!isset($pagina_actual)) {
     $pagina_actual = '';
 }
@@ -23,26 +33,29 @@ try {
     .pos-navbar .nav-link.active { color: #ffffff; background-color: #2563eb; }
     .badge-caja-abierta { background-color: #059669; color: #ffffff; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.75rem; }
     .badge-caja-cerrada { background-color: #dc2626; color: #ffffff; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.75rem; }
+    .btn-logout { background-color: #ef4444; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.8rem; margin-left: 10px; }
+    .btn-logout:hover { background-color: #dc2626; }
 </style>
 
 <nav class="pos-navbar">
-    
     <a href="pos.php" class="brand"><img src="../public/images/logo.png" alt="Logo de la Empresa" width="40" style="margin-left: 12px; vertical-align: middle;"> RV - Limpieza</a>
-    
     
     <ul class="nav-links">
         <li><a href="pos.php" class="nav-link <?= ($pagina_actual === 'pos') ? 'active' : ''; ?>">🛒 Punto de Venta</a></li>
         <li><a href="clientes.php" class="nav-link <?= ($pagina_actual === 'clientes') ? 'active' : ''; ?>">👥 Clientes</a></li>
         <li><a href="inventario.php" class="nav-link <?= ($pagina_actual === 'inventario') ? 'active' : ''; ?>">📦 Inventario</a></li>
-        <li><a href="reportes.php" class="nav-link <?= ($pagina_actual === 'reportes') ? 'active' : ''; ?>">📊 Cierre de Caja</a></li> 
+        <li><a href="reportes.php" class="nav-link <?= ($pagina_actual === 'reportes') ? 'active' : ''; ?>">📊 Cierre de Caja</a></li>
     </ul>
-    <div>
-        
+    <div style="display: flex; align-items: center;">
         <?php if ($estadoCaja === 'ABIERTA'): ?>
             <span class="badge-caja-abierta">🟢 Caja #1 - ABIERTA</span>
         <?php else: ?>
             <span class="badge-caja-cerrada">🔴 Caja #1 - CERRADA</span>
-        <?php endif; ?>3
+        <?php endif; ?>
         
+        <a href="../controllers/AuthController.php?action=logout" class="btn-logout" title="Cerrar Sesión">🚪 Salir</a>
     </div>
 </nav>
+
+
+
