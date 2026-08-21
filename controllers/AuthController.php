@@ -21,7 +21,6 @@ try {
             exit;
         }
 
-        // Consulta corregida con marcadores distintos (:u1 y :u2)
         $stmt = $db->prepare("SELECT * FROM usuarios WHERE usuario = :u1 OR nombre = :u2 LIMIT 1");
         $stmt->execute([
             ':u1' => $usuario,
@@ -30,6 +29,12 @@ try {
         $user = $stmt->fetch();
 
         if ($user) {
+            // VALIDACIÓN DE ESTADO DEL USUARIO
+            if (isset($user['estado']) && $user['estado'] === 'INACTIVO') {
+                echo "<script>alert('Tu cuenta se encuentra INACTIVA. Contacta al administrador.'); window.location.href='../views/login.php';</script>";
+                exit;
+            }
+
             $passBD = $user['password'];
             $esValido = false;
 

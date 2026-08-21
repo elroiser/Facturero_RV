@@ -39,11 +39,13 @@ try {
     <ul class="nav-links">
         <li><a href="pos.php" class="nav-link <?= ($pagina_actual === 'pos') ? 'active' : ''; ?>">🛒 Punto de Venta</a></li>
         <li><a href="clientes.php" class="nav-link <?= ($pagina_actual === 'clientes') ? 'active' : ''; ?>">👥 Clientes</a></li>
-        
+
         <?php if ($rolUsuario === 'ADMIN'): ?>
             <li><a href="inventario.php" class="nav-link <?= ($pagina_actual === 'inventario') ? 'active' : ''; ?>">📦 Inventario</a></li>
             <li><a href="historial_ventas.php" class="nav-link <?= ($pagina_actual === 'historial_ventas') ? 'active' : ''; ?>">📊 Historial Ventas</a></li>
             <li><a href="reportes.php" class="nav-link <?= ($pagina_actual === 'reportes') ? 'active' : ''; ?>">💵 Cierre de Caja</a></li>
+            <li><a href="usuarios.php" class="nav-link <?= ($pagina_actual === 'usuarios') ? 'active' : ''; ?>">👤 Usuarios</a></li>
+            <li><a href="auditoria.php" class="nav-link <?= ($pagina_actual === 'auditoria') ? 'active' : ''; ?>">🛡️ Auditoría</a></li>
         <?php endif; ?>
     </ul>
 

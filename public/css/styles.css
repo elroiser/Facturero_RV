@@ -439,3 +439,27 @@ body {
     .print-body { margin: 0; padding: 0; }
     .ticket-body { width: 100%; padding: 0; }
 }
+
+/* ==========================================
+   ESTILOS DE USUARIOS Y AUDITORÍA
+   ========================================== */
+.grid-usuarios { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
+
+.badge-rol { padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+.badge-admin { background: #dbeafe; color: #1e40af; }
+.badge-cajero { background: #fef3c7; color: #92400e; }
+
+.badge-estado { padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+.estado-activo { background: #dcfce7; color: #15803d; }
+.estado-inactivo { background: #fee2e2; color: #b91c1c; }
+
+.btn-toggle-status {
+    padding: 4px 10px; border-radius: 4px; border: none; font-size: 0.75rem;
+    font-weight: bold; cursor: pointer; color: white;
+}
+.btn-desactivar { background: #ef4444; }
+.btn-desactivar:hover { background: #dc2626; }
+.btn-activar { background: #10b981; }
+.btn-activar:hover { background: #059669; }
+
+.log-tag { font-family: monospace; font-size: 0.75rem; padding: 2px 6px; background: #e2e8f0; border-radius: 4px; font-weight: bold; color: #334155; }

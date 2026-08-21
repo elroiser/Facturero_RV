@@ -5,6 +5,10 @@ error_reporting(0);
 ini_set('display_errors', 0);
 header('Content-Type: application/json');
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once __DIR__ . '/../config/Database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -19,7 +23,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $db = Database::getConnection();
 
-        // 0. Validar que la caja esté ABIERTA
+        // 0. Validar que el usuario en sesión siga ACTIVO
+        $usuarioId = $_SESSION['usuario_id'] ?? 0;
+        if ($usuarioId > 0) {
+            $stmtUserCheck = $db->prepare("SELECT estado FROM usuarios WHERE id = :id LIMIT 1");
+            $stmtUserCheck->execute([':id' => $usuarioId]);
+            $userBD = $stmtUserCheck->fetch();
+
+            if ($userBD && $userBD['estado'] === 'INACTIVO') {
+                session_destroy();
+                http_response_code(403);
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "🚫 Tu cuenta ha sido desactivada por el administrador. No puedes procesar ventas."
+                ]);
+                exit;
+            }
+        }
+
+        // 1. Validar que la caja esté ABIERTA
         $stmtCajaCheck = $db->prepare("SELECT estado FROM cajas WHERE id = :caja_id LIMIT 1");
         $stmtCajaCheck->execute([':caja_id' => $input['caja_id']]);
         $cajaEstado = $stmtCajaCheck->fetch();
@@ -33,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-
         $db->beginTransaction();
 
         $caja_id = $input['caja_id'];
@@ -41,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $items = $input['items'];
         $identificacion = isset($input['cliente_identificacion']) ? trim($input['cliente_identificacion']) : '9999999999999';
 
-        // 1. Validar cliente
+        // 2. Validar cliente
         $stmtCliente = $db->prepare("SELECT id FROM clientes WHERE identificacion = :identificacion LIMIT 1");
         $stmtCliente->execute([':identificacion' => $identificacion]);
         $cliente = $stmtCliente->fetch();
@@ -58,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $cliente_id = $cliente['id'];
 
-        // 2. Validar stock de productos y calcular total
+        // 3. Validar stock de productos y calcular total
         $total_venta = 0;
         foreach ($items as $item) {
             $stmtStock = $db->prepare("SELECT stock, nombre FROM productos WHERE id = :id FOR UPDATE");
@@ -76,8 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $total_venta += $item['cantidad'] * $item['precio_unitario'];
         }
 
-        // 3. Registrar Venta
-        $sqlVenta = "INSERT INTO ventas (caja_id, total, metodo_pago, fecha) VALUES (:caja_id, :total, :metodo_pago, NOW())";
+        // 4. Registrar Venta
         $stmtVenta = $db->prepare("INSERT INTO ventas (caja_id, total, metodo_pago, fecha) VALUES (:caja_id, :total, :metodo_pago, NOW())");
         $stmtVenta->execute([
             ':caja_id' => $caja_id,
@@ -87,11 +107,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $venta_id = $db->lastInsertId();
 
-        // 4. Cálculos de IVA (15%)
+        // 5. Cálculos de IVA (15%)
         $subtotal_sin_impuesto = round($total_venta / 1.15, 2);
         $monto_iva = round($total_venta - $subtotal_sin_impuesto, 2);
 
-        // 5. Insertar la factura temporalmente
+        // 6. Insertar la factura temporalmente
         $temp_secuencial = "TEMP-" . microtime(true);
         $sqlFactura = "INSERT INTO facturas (secuencial, cliente_id, caja_id, subtotal_sin_impuesto, monto_iva, total, metodo_pago, fecha_emision) 
                        VALUES (:secuencial, :cliente_id, :caja_id, :subtotal, :iva, :total, :metodo_pago, NOW())";
@@ -108,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $factura_id = (int)$db->lastInsertId();
 
-        // 6. Generar el secuencial definitivo con 9 dígitos exactos
+        // 7. Generar el secuencial definitivo con 9 dígitos exactos
         $secuencial_definitivo = "001-001-" . sprintf("%09d", $factura_id);
 
         // Actualizar factura
@@ -118,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':id' => $factura_id
         ]);
 
-        // 7. Registrar Detalle y Descontar Stock
+        // 8. Registrar Detalle y Descontar Stock
         $stmtDetalleVenta = $db->prepare("INSERT INTO detalle_ventas (venta_id, producto_id, cantidad, precio_unitario, subtotal) VALUES (:venta_id, :producto_id, :cantidad, :precio_unitario, :subtotal)");
         $stmtDetalleFactura = $db->prepare("INSERT INTO detalle_facturas (factura_id, producto_id, cantidad, precio_unitario, subtotal) VALUES (:factura_id, :producto_id, :cantidad, :precio_unitario, :subtotal)");
         $stmtStockUpdate = $db->prepare("UPDATE productos SET stock = stock - :cantidad WHERE id = :producto_id");
