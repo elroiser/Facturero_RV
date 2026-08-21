@@ -268,3 +268,90 @@ body {
     background-color: #9ca3af;
     cursor: not-allowed;
 }
+
+/* ==========================================
+   ESTILOS DE INICIO DE SESIÓN (GLASSMORPHISM)
+   ========================================== */
+.login-body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('../images/login-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.login-card {
+    background: rgba(15, 23, 42, 0.80);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 35px 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    max-width: 360px;
+    color: white;
+    text-align: center;
+}
+
+.login-card img {
+    width: 65px;
+    margin-bottom: 12px;
+}
+
+.login-card h2 {
+    margin-bottom: 20px;
+    color: #38bdf8;
+    font-size: 1.4rem;
+}
+
+.form-group-login {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.form-group-login label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    color: #cbd5e1;
+}
+
+.form-group-login input {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.form-group-login input:focus {
+    border-color: #38bdf8;
+    background: rgba(255, 255, 255, 0.15);
+}
+/* Botón de inicio de sesión acoplado a la paleta azul */
+.btn-login {
+    width: 100%;
+    background-color: var(--accent); /* #2563eb */
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-login:hover {
+    background-color: var(--accent-hover); /* #1d4ed8 */
+    transform: translateY(-1px);
+}
