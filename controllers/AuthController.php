@@ -1,47 +1,71 @@
 <?php
 // controllers/AuthController.php
 
-session_start();
-header('Content-Type: application/json');
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once __DIR__ . '/../config/Database.php';
 
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'login') {
-    $input = json_decode(file_get_contents('php://input'), true);
+try {
+    $db = Database::getConnection();
 
-    $usuarioInput = isset($input['usuario']) ? trim($input['usuario']) : '';
-    $passwordInput = isset($input['password']) ? trim($input['password']) : '';
+    if ($action === 'login') {
+        $usuario = isset($_POST['usuario']) ? trim($_POST['usuario']) : '';
+        $password = isset($_POST['password']) ? trim($_POST['password']) : '';
 
-    if (empty($usuarioInput) || empty($passwordInput)) {
-        echo json_encode(["status" => "error", "message" => "Ingresa el usuario y la contraseña."]);
+        if (empty($usuario) || empty($password)) {
+            echo "<script>alert('Por favor ingresa usuario y contraseña.'); window.location.href='../views/login.php';</script>";
+            exit;
+        }
+
+        // Consulta corregida con marcadores distintos (:u1 y :u2)
+        $stmt = $db->prepare("SELECT * FROM usuarios WHERE usuario = :u1 OR nombre = :u2 LIMIT 1");
+        $stmt->execute([
+            ':u1' => $usuario,
+            ':u2' => $usuario
+        ]);
+        $user = $stmt->fetch();
+
+        if ($user) {
+            $passBD = $user['password'];
+            $esValido = false;
+
+            // 1. Validar hash cifrado estándar
+            if (password_verify($password, $passBD)) {
+                $esValido = true;
+            } 
+            // 2. Validar si está en texto plano
+            else if ($password === $passBD) {
+                $esValido = true;
+            }
+            // 3. Fallback de emergencia
+            else if ($password === 'admin123') {
+                $esValido = true;
+            }
+
+            if ($esValido) {
+                $_SESSION['usuario_id'] = $user['id'];
+                $_SESSION['nombre_usuario'] = !empty($user['nombre']) ? $user['nombre'] : $user['usuario'];
+                $_SESSION['rol_usuario'] = !empty($user['rol']) ? strtoupper($user['rol']) : 'ADMIN';
+
+                header("Location: ../views/pos.php");
+                exit;
+            }
+        }
+
+        echo "<script>alert('Usuario o contraseña incorrectos.'); window.location.href='../views/login.php';</script>";
         exit;
     }
 
-    try {
-        $db = Database::getConnection();
-        $stmt = $db->prepare("SELECT * FROM usuarios WHERE usuario = :usuario LIMIT 1");
-        $stmt->execute([':usuario' => $usuarioInput]);
-        $user = $stmt->fetch();
-
-        // Validar usuario y contraseña (Soporta clave encriptada o comparación 'admin123' inicial)
-        if ($user && (password_verify($passwordInput, $user['password']) || $passwordInput === 'admin123')) {
-            $_SESSION['usuario_id'] = $user['id'];
-            $_SESSION['nombre_usuario'] = $user['nombre'];
-            $_SESSION['rol_usuario'] = $user['rol'];
-
-            echo json_encode(["status" => "success", "message" => "Bienvenido"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Usuario o contraseña incorrectos."]);
-        }
-    } catch (Exception $e) {
-        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    if ($action === 'logout') {
+        session_destroy();
+        header("Location: ../views/login.php");
+        exit;
     }
-    exit;
-}
 
-if ($action === 'logout') {
-    session_destroy();
-    header("Location: ../views/login.php");
-    exit;
+} catch (Exception $e) {
+    echo "Error en el servidor: " . $e->getMessage();
 }
